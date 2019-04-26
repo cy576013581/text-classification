@@ -5,7 +5,7 @@ Created on Wed Aug  1 11:12:10 2018
 @author: chenyang
 """
 
-import fasttext
+import fastText as fastText
 import os
 import sys
 from sklearn import metrics
@@ -53,31 +53,34 @@ if __name__ == '__main__':
 
     filename=sys.argv[1]
     print("input param:%s" % filename)
-    print(os.path.exists('%s/model.bin' % filename))
+    print("model exists",os.path.exists('./%s/model.bin' % filename))
     
     classifier = None
     
-    if(os.path.exists('%s/model.bin' % filename)):
-        classifier =fasttext.load_model('%s/model.bin' % filename)
+    if(os.path.exists('./%s/model.bin' % filename)):
+        classifier =fastText.load_model('./%s/model.bin' % filename)
     else:
         #训练模型
-        if(not os.path.exists('%s/' % filename)):
-            os.mkdir('%s/' % filename)
-        fasttext.supervised('%s/train.txt' % filename,'%s/model' % filename)
-        classifier =fasttext.load_model('%s/model.bin' % filename)
-
-    lines, test_cls = read_file("%s/test.txt" % filename);
+        if(not os.path.exists('./%s/' % filename)):
+            os.mkdir('./%s/' % filename)
+        classifier = fastText.train_supervised('./%s/train.txt' % filename)
+        classifier.save_model('./%s/model.bin' % filename)
+    
+    lines, test_cls = read_file("./%s/test.txt" % filename);
     
     print("data sum: ",len(lines))
-	# 预测
-    pred = classifier.predict(lines)
-    
+#    print(test_cls)
     pred_cls = []
-    for x in pred:
-        pred_cls.append(x[0])
-    print("Fasttest:")
+    for l in lines:
+        pred = classifier.predict(l)
+        pred_cls.append(pred[0])
+        # print(pred[0])
+ #   pred = classifier.predict(lines)
+    
     # 评估
     print("Precision, Recall and F1-Score...")
+    print("test_cls.shape:",len(test_cls))
+    print("pred_cls.shape:",len(pred_cls))
     print(metrics.classification_report(test_cls, pred_cls))
     # 混淆矩阵
     print("Confusion Matrix...")
